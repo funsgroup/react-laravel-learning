@@ -14,6 +14,16 @@ Laravel API、React SPA、MySQL 9.7.0 で構成する顧客・案件管理のサ
 - データベース: MySQL `9.7.0`。登録した顧客、案件、タスク、ユーザーを保存します。
 - 権限: `admin` / `staff`。`admin` は削除もでき、`staff` は登録・編集が中心です。
 
+## 完成品版と見比べるときの注意
+
+`react-laravel-learning` は `backend/` を自分で作る学習版、`react-laravel-complete` は完成品版です。
+両方を同じ PC で同時に起動しやすいように、完成品版は手元の PC から見えるポートとコンテナ名を変えています。これは環境上の差分であり、画面仕様や API 仕様の学習差分ではありません。
+
+| リポジトリ | React | Laravel API | MySQL |
+| --- | --- | --- | --- |
+| `react-laravel-learning` | `http://localhost:5173` | `http://localhost:8000` | `localhost:3306` |
+| `react-laravel-complete` | `http://localhost:5174` | `http://localhost:8001` | `localhost:3307` |
+
 ## 学習の進め方
 
 最初に次の資料を読んで、`backend/` を作成してください。

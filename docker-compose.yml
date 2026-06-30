@@ -1,3 +1,6 @@
+# 学習版は、Laravel や Vite の標準に近いポートで起動します。
+# 完成品版 react-laravel-complete は、同じ PC で同時起動しやすいように
+# 手元の PC から見えるポートとコンテナ名を別にしています。
 services:
   # MySQL はアプリのデータを保存するデータベースです。
   # Laravel からはサービス名の `mysql` をホスト名として参照します。

@@ -1,5 +1,6 @@
 // Vite では import.meta.env から .env の値を読み取れます。
-// 未設定の場合でも開発環境で動くように、Laravel API の標準 URL を既定値にしています。
+// 未設定の場合でも開発環境で動くように、学習版の Docker Compose に合わせた URL を既定値にしています。
+// 完成品版は同時起動しやすいように別ポートを使うため、既定値が異なります。
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 /**
