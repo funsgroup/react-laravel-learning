@@ -1,0 +1,30 @@
+/* ブラウザ全体で使う基本フォントと背景色です。 */
+:root {
+  font-family:
+    Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", Meiryo, system-ui,
+    sans-serif;
+  color: #242820;
+  background: #f6f7f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* padding や border を幅計算に含め、レイアウトを扱いやすくします。 */
+* {
+  box-sizing: border-box;
+}
+
+/* 小さい画面でも最低限の横幅を保ちます。 */
+html {
+  min-width: 320px;
+  background: #f6f7f2;
+}
+
+/* body の余白を消し、アプリが画面全体を使えるようにします。 */
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}

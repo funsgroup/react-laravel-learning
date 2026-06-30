@@ -1,0 +1,103 @@
+services:
+  # MySQL はアプリのデータを保存するデータベースです。
+  # Laravel からはサービス名の `mysql` をホスト名として参照します。
+  mysql:
+    # 学習時に環境差が出にくいよう、MySQL のバージョンを固定しています。
+    image: mysql:9.7.0
+    container_name: business_sample_mysql
+    environment:
+      # 初回起動時に作成されるデータベース名です。
+      MYSQL_DATABASE: business_sample
+      # Laravel が通常接続に使うユーザー名とパスワードです。
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: secret
+      # root ユーザーは管理用です。開発用の値なので本番では強い値に変更します。
+      MYSQL_ROOT_PASSWORD: root_secret
+      # DB 内の日付処理を日本時間に寄せます。
+      TZ: Asia/Tokyo
+    ports:
+      # 左が手元の PC、右がコンテナです。手元から MySQL を見る場合は localhost:3306 を使います。
+      - "3306:3306"
+    volumes:
+      # DB の実データを名前付き volume に保存し、コンテナを作り直しても残るようにします。
+      - mysql-data:/var/lib/mysql
+      # 初回起動時に、Laravel のテスト専用 DB も作成します。
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # MySQL が接続可能になるまで backend の起動を待つための確認です。
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot_secret"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Laravel API を動かす PHP コンテナです。
+  # React から http://localhost:8000 へ API リクエストを送ります。
+  backend:
+    build:
+      # Dockerfile から見た基準ディレクトリです。
+      context: .
+      # PHP と Composer を入れた Laravel 用イメージを作ります。
+      dockerfile: docker/php/Dockerfile
+    container_name: business_sample_backend
+    # コンテナ内で artisan などのコマンドを実行する作業場所です。
+    working_dir: /var/www/html
+    volumes:
+      # 手元の backend ディレクトリをコンテナ内へつなぎ、編集内容を即反映します。
+      - ./backend:/var/www/html
+    environment:
+      # Laravel の基本設定です。開発環境なので debug を有効にしています。
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+      # MySQL 接続設定です。DB_HOST は上のサービス名 `mysql` を指定します。
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: business_sample
+      DB_USERNAME: app_user
+      DB_PASSWORD: secret
+      # ログイン状態を DB に保存します。
+      SESSION_DRIVER: database
+      # Sanctum の Cookie 認証で「同じアプリ」として扱うドメインです。
+      SANCTUM_STATEFUL_DOMAINS: localhost:5173,127.0.0.1:5173,localhost:8000,127.0.0.1:8000
+      # React の開発サーバーから API を呼べるように許可します。
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+    ports:
+      # ブラウザや React から Laravel API へアクセスするためのポートです。
+      - "8000:8000"
+    depends_on:
+      mysql:
+        # DB が healthy になるまで backend の起動コマンドを待たせます。
+        condition: service_healthy
+    # 起動時に依存関係、APP_KEY、DB テーブル、初期データを準備してから API サーバーを起動します。
+    command: >
+      sh -c "composer install
+      && php artisan key:generate --force
+      && php artisan migrate --force
+      && php artisan db:seed --force
+      && php artisan serve --host=0.0.0.0 --port=8000"
+
+  # React + Vite の開発サーバーを動かす Node.js コンテナです。
+  frontend:
+    image: node:22
+    container_name: business_sample_frontend
+    working_dir: /app
+    volumes:
+      # 手元の frontend ディレクトリをコンテナへつなぎ、画面変更を即反映します。
+      - ./frontend:/app
+    environment:
+      # React から見た Laravel API の URL です。
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      # ブラウザで React 画面を見るためのポートです。
+      - "5173:5173"
+    depends_on:
+      - backend
+    # npm パッケージを入れてから Vite を外部アクセス可能な状態で起動します。
+    # package.json に直接起動用の dev スクリプトを置かず、Docker Compose から明示的に起動します。
+    command: sh -c "npm install && ./node_modules/.bin/vite --host 0.0.0.0"
+
+volumes:
+  # MySQL のデータを保存する名前付き volume です。
+  # 完全に初期化したい場合は `docker compose down -v` で削除します。
+  mysql-data:
