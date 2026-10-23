@@ -123,7 +123,7 @@ const yenFormatter = new Intl.NumberFormat('ja-JP', {
 })
 
 /**
- * YYYY-MM-DD の日付文字列を「月/日」の表示に変換します。
+ * YYYY-MM-DD の日付文字列を「年/月/日」の表示に変換します。
  *
  * API から null が返ることもあるため、未設定の場合は '-' を表示します。
  */
@@ -131,6 +131,7 @@ const formatDate = (value: string | null) => {
   if (!value) return '-'
 
   return new Intl.DateTimeFormat('ja-JP', {
+    year: 'numeric',
     month: 'numeric',
     day: 'numeric',
   }).format(new Date(`${value}T00:00:00`))
